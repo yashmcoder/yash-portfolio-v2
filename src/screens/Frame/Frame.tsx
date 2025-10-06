@@ -42,7 +42,7 @@ const LoadingScreen = () => (
       {/* Loading text */}
       <div className="mt-12 text-center">
         <p className="[font-family:'Silkscreen',Helvetica] font-normal text-white text-xl animate-pulse">
-          Loading Assets...
+          Loading...
         </p>
         <p className="[font-family:'Share_Tech',Helvetica] font-normal text-yellow-400/70 text-sm mt-2 animate-pulse">
           Preparing your experience
@@ -173,26 +173,17 @@ export const Frame = (): JSX.Element => {
   const projectsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadAssets = async () => {
-      const imagePromises = [
-        // Profile image
+    const loadCriticalAssets = async () => {
+      // Only preload critical images that are immediately visible
+      const criticalImages = [
+        // Profile image (immediately visible)
         '/download--1--1.png',
-        // Background images
+        // Background image (immediately visible)
         '/one-piece-1.png',
-        // Portfolio images
-        '/flames2-1.png',
-        '/a-3d-png-1.png', 
-        '/1-2.png',
-        '/3-2.png',
-        '/websitebanner-1.png',
-        '/b-vector-1.png',
-        '/image.png',
-        '/images-1.png',
-        '/untitled-design-1.png',
-        '/youtube-banener-2-1.png',
-        // Social icons (external, but we'll wait a bit for them)
-      ].map(src => {
-        return new Promise((resolve, reject) => {
+      ];
+
+      const imagePromises = criticalImages.map(src => {
+        return new Promise((resolve) => {
           const img = new Image();
           img.onload = resolve;
           img.onerror = resolve; // Continue even if image fails
@@ -200,24 +191,23 @@ export const Frame = (): JSX.Element => {
         });
       });
 
-      // Wait for fonts to load
+      // Wait for critical fonts to load
       const fontPromises = [
         document.fonts.load("16px 'Silkscreen'"),
         document.fonts.load("16px 'Share_Tech'"),
-        document.fonts.load("16px 'Inknut_Antiqua'"),
       ];
 
       try {
         await Promise.all([...imagePromises, ...fontPromises]);
-        // Add a small delay to ensure smooth transition
-        setTimeout(() => setIsLoading(false), 500);
+        // Show content after critical assets load, with a small buffer
+        setTimeout(() => setIsLoading(false), 300);
       } catch (error) {
-        // If loading fails, still show the content after a timeout
-        setTimeout(() => setIsLoading(false), 2000);
+        // If loading fails, still show the content after a shorter timeout
+        setTimeout(() => setIsLoading(false), 1000);
       }
     };
 
-    loadAssets();
+    loadCriticalAssets();
   }, []);
 
   const scrollToProjects = () => {

@@ -190,6 +190,7 @@ export const Frame = (): JSX.Element => {
                         index === 0 ? () => window.open('https://www.instagram.com/yash.svg', '_blank') :
                         index === 1 ? () => window.open('https://x.com/iam_YashM?t=rWvCkGERs3jdg9f-BhF2kQ&s=08', '_blank') :
                         index === 2 ? () => window.open('https://www.linkedin.com/in/yash-malav-709512141/', '_blank') :
+                        index === 3 ? () => window.open('https://discord.com/users/673743515267760168', '_blank') :
                         undefined
                       }
                     >

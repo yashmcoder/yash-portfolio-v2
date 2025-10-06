@@ -17,35 +17,46 @@ const MangaBackground = () => (
 const LoadingScreen = () => (
   <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
     <div className="relative">
-      {/* Main anime-style loading animation */}
-      <div className="relative flex items-center justify-center">
+      {/* Enhanced loading animation */}
+      <div className="relative flex items-center justify-center mb-8">
         {/* Outer rotating ring */}
-        <div className="w-24 h-24 border-4 border-yellow-400/30 rounded-full animate-spin">
-          <div className="absolute top-0 left-0 w-6 h-6 bg-yellow-400 rounded-full animate-pulse"></div>
+        <div className="w-32 h-32 border-4 border-yellow-400/20 rounded-full animate-spin">
+          <div className="absolute top-0 left-0 w-8 h-8 bg-yellow-400 rounded-full animate-pulse shadow-lg shadow-yellow-400/50"></div>
         </div>
-        
+
+        {/* Middle rotating ring */}
+        <div className="absolute w-24 h-24 border-2 border-orange-400/30 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}>
+          <div className="absolute top-2 right-2 w-4 h-4 bg-orange-400 rounded-full animate-ping"></div>
+        </div>
+
         {/* Inner pulsing circle */}
-        <div className="absolute w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping opacity-75"></div>
-        
+        <div className="absolute w-16 h-16 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-full animate-ping opacity-80 shadow-inner"></div>
+
         {/* Center lightning bolt */}
-        <div className="absolute text-yellow-400 text-3xl animate-pulse">
+        <div className="absolute text-yellow-400 text-4xl animate-pulse drop-shadow-lg">
           ⚡
         </div>
       </div>
-      
-      {/* Sparkle effects */}
-      <div className="absolute -top-8 -left-8 text-yellow-300 text-xl animate-ping">✨</div>
-      <div className="absolute -top-4 -right-10 text-yellow-200 text-lg animate-pulse">⭐</div>
-      <div className="absolute -bottom-8 -left-10 text-yellow-300 text-xl animate-bounce">⚡</div>
-      <div className="absolute -bottom-4 -right-8 text-yellow-200 text-lg animate-ping">✨</div>
-      
+
+      {/* Enhanced sparkle effects */}
+      <div className="absolute -top-12 -left-12 text-yellow-300 text-2xl animate-ping">✨</div>
+      <div className="absolute -top-6 -right-14 text-yellow-200 text-xl animate-pulse">⭐</div>
+      <div className="absolute -bottom-12 -left-14 text-yellow-300 text-2xl animate-bounce">⚡</div>
+      <div className="absolute -bottom-6 -right-12 text-yellow-200 text-xl animate-ping">✨</div>
+
+      {/* Additional sparkles */}
+      <div className="absolute top-4 -left-8 text-orange-300 text-lg animate-pulse">✦</div>
+      <div className="absolute top-8 -right-10 text-red-300 text-lg animate-bounce">✧</div>
+      <div className="absolute -bottom-8 left-6 text-yellow-300 text-lg animate-ping">✦</div>
+      <div className="absolute -bottom-4 right-8 text-orange-300 text-lg animate-pulse">✧</div>
+
       {/* Loading text */}
       <div className="mt-12 text-center">
         <p className="[font-family:'Silkscreen',Helvetica] font-normal text-white text-xl animate-pulse">
-          Loading...
+          Loading Portfolio...
         </p>
         <p className="[font-family:'Share_Tech',Helvetica] font-normal text-yellow-400/70 text-sm mt-2 animate-pulse">
-          Preparing your experience
+          Preparing all assets for smooth experience
         </p>
       </div>
     </div>
@@ -173,41 +184,62 @@ export const Frame = (): JSX.Element => {
   const projectsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadCriticalAssets = async () => {
-      // Only preload critical images that are immediately visible
-      const criticalImages = [
-        // Profile image (immediately visible)
-        '/download--1--1.png',
-        // Background image (immediately visible)
-        '/one-piece-1.png',
+    const loadAllAssets = async () => {
+      // Load ALL images used in the portfolio for smooth scrolling experience
+      const allImages = [
+        // Critical images (immediately visible)
+        '/download--1--1.png', // Profile image
+        '/one-piece-1.png',    // Background image
+
+        // Portfolio images (for smooth scrolling)
+        '/flames2-1.png',
+        '/a-3d-png-1.png',
+        '/1-2.png',
+        '/b-vector-1.png',
+        '/websitebanner-1.png',
+        '/3-2.png',
+        '/youtube-banener-2-1.png',
       ];
 
-      const imagePromises = criticalImages.map(src => {
+      const imagePromises = allImages.map(src => {
         return new Promise((resolve) => {
           const img = new Image();
-          img.onload = resolve;
-          img.onerror = resolve; // Continue even if image fails
+          img.onload = () => resolve(src);
+          img.onerror = () => resolve(src); // Continue even if image fails
           img.src = src;
         });
       });
 
-      // Wait for critical fonts to load
+      // Load essential fonts
       const fontPromises = [
         document.fonts.load("16px 'Silkscreen'"),
         document.fonts.load("16px 'Share_Tech'"),
+        document.fonts.load("16px 'Inknut_Antiqua'"),
       ];
 
       try {
-        await Promise.all([...imagePromises, ...fontPromises]);
-        // Show content after critical assets load, with a small buffer
-        setTimeout(() => setIsLoading(false), 300);
+        // Use Promise.allSettled for better error handling - continues even if some assets fail
+        const results = await Promise.allSettled([...imagePromises, ...fontPromises]);
+
+        // Check if most critical images loaded successfully
+        const criticalImagesLoaded = results.slice(0, 2).every(result =>
+          result.status === 'fulfilled'
+        );
+
+        if (criticalImagesLoaded) {
+          // Show content after critical assets load
+          setTimeout(() => setIsLoading(false), 200);
+        } else {
+          // Fallback: show content after timeout if critical images fail
+          setTimeout(() => setIsLoading(false), 1500);
+        }
       } catch (error) {
-        // If loading fails, still show the content after a shorter timeout
-        setTimeout(() => setIsLoading(false), 1000);
+        // Ultimate fallback
+        setTimeout(() => setIsLoading(false), 2000);
       }
     };
 
-    loadCriticalAssets();
+    loadAllAssets();
   }, []);
 
   const scrollToProjects = () => {

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 
@@ -11,6 +11,44 @@ const MangaBackground = () => (
       backgroundPosition: 'center',
       filter: 'grayscale(100%) contrast(1.2)'
     }} />
+  </div>
+);
+
+const LoadingScreen = () => (
+  <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+    <div className="relative">
+      {/* Main anime-style loading animation */}
+      <div className="relative flex items-center justify-center">
+        {/* Outer rotating ring */}
+        <div className="w-24 h-24 border-4 border-yellow-400/30 rounded-full animate-spin">
+          <div className="absolute top-0 left-0 w-6 h-6 bg-yellow-400 rounded-full animate-pulse"></div>
+        </div>
+        
+        {/* Inner pulsing circle */}
+        <div className="absolute w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping opacity-75"></div>
+        
+        {/* Center lightning bolt */}
+        <div className="absolute text-yellow-400 text-3xl animate-pulse">
+          ⚡
+        </div>
+      </div>
+      
+      {/* Sparkle effects */}
+      <div className="absolute -top-8 -left-8 text-yellow-300 text-xl animate-ping">✨</div>
+      <div className="absolute -top-4 -right-10 text-yellow-200 text-lg animate-pulse">⭐</div>
+      <div className="absolute -bottom-8 -left-10 text-yellow-300 text-xl animate-bounce">⚡</div>
+      <div className="absolute -bottom-4 -right-8 text-yellow-200 text-lg animate-ping">✨</div>
+      
+      {/* Loading text */}
+      <div className="mt-12 text-center">
+        <p className="[font-family:'Silkscreen',Helvetica] font-normal text-white text-xl animate-pulse">
+          Loading Assets...
+        </p>
+        <p className="[font-family:'Share_Tech',Helvetica] font-normal text-yellow-400/70 text-sm mt-2 animate-pulse">
+          Preparing your experience
+        </p>
+      </div>
+    </div>
   </div>
 );
 
@@ -131,15 +169,66 @@ const portfolioImages = [
 
 export const Frame = (): JSX.Element => {
   const [selectedImage, setSelectedImage] = useState<{ src: string; alt: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const projectsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loadAssets = async () => {
+      const imagePromises = [
+        // Profile image
+        '/download--1--1.png',
+        // Background images
+        '/one-piece-1.png',
+        // Portfolio images
+        '/flames2-1.png',
+        '/a-3d-png-1.png', 
+        '/1-2.png',
+        '/3-2.png',
+        '/websitebanner-1.png',
+        '/b-vector-1.png',
+        '/image.png',
+        '/images-1.png',
+        '/untitled-design-1.png',
+        '/youtube-banener-2-1.png',
+        // Social icons (external, but we'll wait a bit for them)
+      ].map(src => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = resolve; // Continue even if image fails
+          img.src = src;
+        });
+      });
+
+      // Wait for fonts to load
+      const fontPromises = [
+        document.fonts.load("16px 'Silkscreen'"),
+        document.fonts.load("16px 'Share_Tech'"),
+        document.fonts.load("16px 'Inknut_Antiqua'"),
+      ];
+
+      try {
+        await Promise.all([...imagePromises, ...fontPromises]);
+        // Add a small delay to ensure smooth transition
+        setTimeout(() => setIsLoading(false), 500);
+      } catch (error) {
+        // If loading fails, still show the content after a timeout
+        setTimeout(() => setIsLoading(false), 2000);
+      }
+    };
+
+    loadAssets();
+  }, []);
 
   const scrollToProjects = () => {
     projectsRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="bg-black w-full min-h-screen relative overflow-x-hidden flex flex-col">
-      <MangaBackground />
+    <>
+      {isLoading && <LoadingScreen />}
+      <div className="bg-black w-full min-h-screen relative overflow-x-hidden flex flex-col">
+        <MangaBackground />
       <div className="flex-grow relative z-10">
         <div className="max-w-[650px] mx-auto px-4 py-8 relative">
           <Card className="absolute left-1/2 transform -translate-x-1/2 top-4 z-20 w-full max-w-[280px] bg-[#131313]/80 backdrop-blur-sm rounded-[26px] overflow-hidden border border-white/20 shadow-[0px_-20px_40px_-10px_rgba(255,255,255,0.1)]">
@@ -328,5 +417,6 @@ export const Frame = (): JSX.Element => {
       )}
       <Footer />
     </div>
+    </>
   );
 };
